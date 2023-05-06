@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-I/home/uefa41/.arduino15/packages/arduino/hardware/avr/1.8.6/cores/arduino, -I/home/uefa41/.arduino15/packages/arduino/hardware/avr/1.8.6/variants/mega, -I/home/uefa41/Arduino/libraries/NewPing/src, -I/home/uefa41/.arduino15/packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include, -I/home/uefa41/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/EEPROM/src]
