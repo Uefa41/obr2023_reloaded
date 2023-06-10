@@ -1,14 +1,14 @@
 #include "line.h"
-#include "input/rgb.h"
-#include "input/rgb_set.h"
-#include "output/motors.h"
-#include "output/traction.h"
-#include "util/pid.h"
+#include "rgb.h"
+#include "rgb_set.h"
+#include "motors.h"
+#include "traction.h"
+#include "pid.h"
 
 #include <Arduino.h>
 
-LineFollow::LineFollow(Traction &traction, RgbSet &rgbSet, Pid &linePID)
- : traction(traction), rgbSet(rgbSet), linePID(linePID) {}
+LineFollow::LineFollow(Traction &traction, RgbSet &rgbSet, Pid &linePID, Gyro &gyro)
+ : traction(traction), rgbSet(rgbSet), linePID(linePID), gyro(gyro) {}
 
 void LineFollow::followLine(int baseSpeed, float speedReduc) {
   float error = sq(rgbSet.rgbRightLast.values[Rgb::REF]) -
@@ -29,15 +29,80 @@ void LineFollow::ninetyDegrees(int minErr) {
 
  traction.forward(traction.baseSpeed);
  float error;
- for (unsigned long time = millis(); millis() - time < 90) {
-  error = sq(rgbSet.rgbRightLast.values[Rgb::REF]) -
-   sq(rgbSet.rgbLeftLast.values[Rgb::REF]);
+ for (unsigned long time = millis(); millis() - time < 90; ) {
+  error = rgbSet.rgbRightLast.values[Rgb::REF] -
+   rgbSet.rgbLeftLast.values[Rgb::REF];
 
   rgbSet.receiveMasks();
 
-  switch (rgbSet.blackMask & (LEFT_BIT | RIGHT_BIT)) {
-   case LEFT_BIT:
-    
+  int dir = rgbSet.blackMask & (LEFT_BIT | RIGHT_BIT);
+
+  if (error > -minErr) {
+   dir &= ~LEFT_BIT;
   }
+  if (error < minErr) {
+   dir &= ~RIGHT_BIT;
+  }
+
+  if (! dir)
+   continue;
+
+  traction.backwards(traction.minSpeed);
+  delay(150);
+
+  traction.spin((dir == LEFT_BIT ? -1 : 1) * traction.spinSpeed);
+  delay(300);
+  rgbSet.receiveMasks();
+  if (rgbSet.whiteMask & dir) {
+   traction.spin((dir == LEFT_BIT ? 1 : -1) * traction.spinSpeed);
+   delay(300);
+   traction.forward(traction.minSpeed);
+   do {
+    rgbSet.receiveMasks();
+   } while (rgbSet.whiteMask & MID_BIT);
+   return;
+  }
+
+  traction.forward(traction.minSpeed);
+  for (unsigned long time = millis(); millis() - time < 100;) {
+   rgbSet.receiveMasks();
+   if ((dir == LEFT_BIT? RIGHT_BIT: LEFT_BIT) & rgbSet.whiteMask) {
+    break;
+   }
+  }
+  delay(120);
+
+  traction.backwards(traction.minSpeed);
+  delay(50);
+
+  traction.stop();
+  delay(500);
+
+  gyro.reset();
+  traction.spin((dir == LEFT_BIT ? -1 : 1) * traction.spinSpeed);
+  do {
+   rgbSet.receiveMasks();
+   if (abs(gyro.getRot()) < gyro.ROT_90)
+    continue;
+
+   traction.spin((dir == LEFT_BIT ? 1 : -1) * traction.spinSpeed);
+   gyro.waitRot(gyro.ROT_90);
+   traction.forward(traction.minSpeed);
+   delay(50);
+   return;
+  } while (!(dir & rgbSet.blackMask));
+
+  delay(80);
+  traction.spin(traction.spinSpeed);
+  delay(50);
+  traction.stop();
+  delay(50);
+
+  traction.backwards(traction.minSpeed);
+  delay(110);
+  traction.stop();
+
+  linePID.reset();
+  return;
  }
 }
