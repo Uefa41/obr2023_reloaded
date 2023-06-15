@@ -17,11 +17,11 @@ void Traction::begin() {
    motorBackRight.begin();
 }
 
-void Traction::turnDirection(int direction, int baseSpeed) {
+void Traction::turnDirection(float direction, int baseSpeed) {
    int motorSpeed[2];
 
-   motorSpeed[0] = baseSpeed + direction;
-   motorSpeed[1] = baseSpeed - direction;
+   motorSpeed[0] = round((100 + direction) * baseSpeed / 100);
+   motorSpeed[1] = round((100 - direction) * baseSpeed / 100);
 
    for (uint8_t i = 0; i < 2; i++) {
       motorSpeed[i] = min(maxSpeed, motorSpeed[i]);

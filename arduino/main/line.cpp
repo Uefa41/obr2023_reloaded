@@ -7,16 +7,22 @@
 
 #include <Arduino.h>
 
-LineFollow::LineFollow(Traction &traction, RgbSet &rgbSet, Pid &linePID, Gyro &gyro)
- : traction(traction), rgbSet(rgbSet), linePID(linePID), gyro(gyro) {}
+LineFollow::LineFollow(Traction &traction, RgbSet &rgbSet, Pid &linePID, Gyro &gyro, Led &led)
+ : traction(traction), rgbSet(rgbSet), linePID(linePID), gyro(gyro), led(led) {}
 
-void LineFollow::followLine(int baseSpeed, float speedReduc) {
-  float error = sq(rgbSet.rgbRightLast.values[Rgb::REF]) -
-   sq(rgbSet.rgbLeftLast.values[Rgb::REF]);
+void LineFollow::followLine(int baseSpeed, float speedReduc, float maxDir) {
+  float error = sq(rgbSet.rgbRightLast.values[Rgb::REF] / 10.0) -
+   sq(rgbSet.rgbLeftLast.values[Rgb::REF] / 10.0);
 
-  int direction = linePID.output(error);
+  float direction = linePID.output(error);
 
-  traction.turnDirection(direction, baseSpeed - abs(direction) * speedReduc);
+ Serial.println(direction);
+
+  if (abs(direction) > maxDir) {
+   traction.spin(traction.spinSpeed * (direction > 0 ? 1 : -1));
+  } else {
+   traction.turnDirection(direction, baseSpeed * (100 - abs(direction) * speedReduc) / 100);
+  }
 }
 
 void LineFollow::ninetyDegrees(int minErr) {
@@ -46,6 +52,8 @@ void LineFollow::ninetyDegrees(int minErr) {
 
   if (! dir)
    continue;
+
+  led.setRGB(0, 0, 255);
 
   traction.backwards(traction.minSpeed);
   delay(150);
@@ -103,6 +111,7 @@ void LineFollow::ninetyDegrees(int minErr) {
   traction.stop();
 
   linePID.reset();
+  led.setRGB(0, 0, 0);
   return;
  }
 }

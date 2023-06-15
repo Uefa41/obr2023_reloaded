@@ -14,17 +14,16 @@
 
 /* -- Defines -- */
 #define CALIBRATION_SAVE
-#define TEST
 
 
 /* -- Constantes -- */
 
 // Velocidade
 const int MAX_SPEED = 120;
-const int MIN_SPEED = 25;
-const int BASE_SPEED = 30;
-const int SPIN_SPEED = 85;
-const float SR = 0.5;
+const int MIN_SPEED = 20;
+const int BASE_SPEED = 25;
+const int SPIN_SPEED = 75;
+const float SR = 0.05;
 
 // Identificação de cores
 const int GREEN_MARGIN = 10;
@@ -37,10 +36,11 @@ const int MIN_90_ERR = 20;
 const int ROT_90 = 4000;
 
 // Parâmetros PID
-const float KP = 0.0004;
-const float KI = 0.00001;
-const float KD = 0.00005;
-const float MAX_I = 50;
+const float KP = 25;
+const float KI = 0;
+const float KD = 0.05;
+const float MAX_I = 10;
+const float MAX_DIR = 140.0;
 
 
 /* -- Declaração dos componentes -- */
@@ -77,7 +77,7 @@ Led led(LED_R, LED_G, LED_B);
 // Segue-faixa e 90 graus
 Pid linePID(KP, KI, KD, MAX_I);
 
-LineFollow line(traction, rgbSet, linePID, gyro);
+LineFollow line(traction, rgbSet, linePID, gyro, led);
 
 
 /* -- Funções -- */
@@ -103,14 +103,25 @@ void setup() {
 #else
   calibrate(button, rgbSet, gyro, led, 1000);
 #endif
+
+  button.waitPress();
 }
 
 void loop() {
   rgbSet.receiveMasks();
 
 #if !defined(TEST)
-  line.followLine(BASE_SPEED, SR);
-  line.ninetyDegrees(MIN_90_ERR);
+  line.followLine(BASE_SPEED, SR, MAX_DIR);
+  //line.ninetyDegrees(MIN_90_ERR);
+
+  if(rgbSet.greenMask) return;
+
+  if (button.rawValue()) {
+    while (! button.rawValue());
+    traction.stop();
+    while (button.rawValue());
+    while (! button.rawValue());
+  }
 #else
    //Serial.print(rgbSet.blackMask & 1);
    //Serial.print((rgbSet.blackMask & 2) >> 1);

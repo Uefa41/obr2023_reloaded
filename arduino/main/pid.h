@@ -13,7 +13,7 @@ class Pid {
 
   Pid(float kP, float kI, float kD, float maxI);
 
-  int output(float error);
+  float output(float error);
 
   void reset();
 };

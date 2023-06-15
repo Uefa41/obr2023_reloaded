@@ -22,7 +22,7 @@ class Traction {
 
   void begin();
 
-  void turnDirection(int direction, int baseSpeed);
+  void turnDirection(float direction, int baseSpeed);
 
   void forward(int speed);
 

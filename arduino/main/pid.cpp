@@ -5,7 +5,7 @@
 Pid::Pid(float kP, float kI, float kD, float maxI)
  : kP(kP), kI(kI), kD(kD), maxI(maxI) {}
 
-int Pid::output(float error) {
+float Pid::output(float error) {
   P = kP * error;
   I += kI * error;
   D = kD * (error - lastError);
@@ -15,7 +15,7 @@ int Pid::output(float error) {
 
   lastError = error;
 
-  return round(P + I + D);
+  return P + I + D;
 }
 
 void Pid::reset() {
