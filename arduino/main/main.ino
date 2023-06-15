@@ -114,7 +114,6 @@ void loop() {
   line.followLine(BASE_SPEED, SR, MAX_DIR);
   //line.ninetyDegrees(MIN_90_ERR);
 
-  if(rgbSet.greenMask) return;
 
   if (button.rawValue()) {
     while (! button.rawValue());
