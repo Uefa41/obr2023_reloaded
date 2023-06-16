@@ -85,11 +85,11 @@ bool Rgb::inRange(rawRgbRange range, long margin, bool lowFreq) {
   return rgbInRange(getRgbState(lowFreq), range, margin);
 }
 
-bool Rgb::rangeDoubleCheck(rawRgbRange range, long margin, int iter) {
-  int f = 0; // Contador de falhas 🗿🍷
+bool Rgb::rangeDoubleCheck(rawRgbRange range, long margin, int iter, bool lowFreq) {
+  int f = 0; // Contador de falhas
 
   for (int i = 0; i < iter; i++) {
-    if (! inRange(range, margin, true))
+    if (! inRange(range, margin, lowFreq))
       f++;
 
     if (f > iter / 2)

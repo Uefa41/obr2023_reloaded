@@ -37,9 +37,9 @@ class Rgb {
 
   rawRgbRange getRgbRange(int iter);
 
-  bool inRange(rawRgbRange range, long margin, bool lowFreq);
+  bool inRange(rawRgbRange range, long margin, bool lowFreq = false);
 
-  bool rangeDoubleCheck(rawRgbRange range, long margin, int iter);
+  bool rangeDoubleCheck(rawRgbRange range, long margin, int iter, bool lowFreq = true);
 };
 
 #endif

@@ -10,6 +10,7 @@
 #include "button.h"
 #include "led.h"
 #include "calibration.h"
+#include "green.h"
 
 
 /* -- Defines -- */
@@ -22,12 +23,12 @@
 const int MAX_SPEED = 120;
 const int MIN_SPEED = 20;
 const int BASE_SPEED = 25;
-const int SPIN_SPEED = 75;
-const float SR = 0.05;
+const int SPIN_SPEED = 85;
+const float SR = 0.04;
 
 // Identificação de cores
 const int GREEN_MARGIN = 10;
-const int GREEN_MARGIN_LF = 7;
+const int GREEN_MARGIN_LF = 20;
 const int BLACK_MARGIN = 60;
 const int WHITE_MARGIN = 40;
 const int MIN_90_ERR = 20;
@@ -36,11 +37,11 @@ const int MIN_90_ERR = 20;
 const int ROT_90 = 4000;
 
 // Parâmetros PID
-const float KP = 25;
+const float KP = 17;
 const float KI = 0;
 const float KD = 0.05;
 const float MAX_I = 10;
-const float MAX_DIR = 140.0;
+const float MAX_DIR = 137.0;
 
 
 /* -- Declaração dos componentes -- */
@@ -79,6 +80,8 @@ Pid linePID(KP, KI, KD, MAX_I);
 
 LineFollow line(traction, rgbSet, linePID, gyro, led);
 
+Green green(traction, rgbSet, gyro, led, NOISE);
+
 
 /* -- Funções -- */
 
@@ -87,6 +90,7 @@ void setup() {
   rgbSet.begin();
   traction.begin();
   led.begin();
+  pinMode(NOISE, OUTPUT);
   Serial.begin(9600);
 
 #if defined(CALIBRATION_SAVE)
@@ -114,7 +118,7 @@ void loop() {
   line.followLine(BASE_SPEED, SR, MAX_DIR);
   //line.ninetyDegrees(MIN_90_ERR);
 
-  if(rgbSet.greenMask) return;
+  green.checkGreen(GREEN_MARGIN_LF);
 
   if (button.rawValue()) {
     while (! button.rawValue());
